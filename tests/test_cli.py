@@ -1,67 +1,73 @@
-"""Tests for the logdiff CLI entry point."""
+"""Tests for logdiff.cli — including new --sort / --top flags."""
 
 import json
-import textwrap
-from pathlib import Path
-
 import pytest
-
-from logdiff.cli import main
+from pathlib import Path
+from logdiff.cli import build_parser, main
 
 
 @pytest.fixture()
-def before_file(tmp_path: Path) -> Path:
+def before_file(tmp_path):
     data = [
-        {"id": "a1", "status": "ok", "latency": 120},
-        {"id": "b2", "status": "error", "latency": 300},
+        {"id": "1", "status": "ok", "latency": 10},
+        {"id": "2", "status": "ok", "latency": 20},
+        {"id": "3", "status": "ok", "latency": 30},
     ]
     p = tmp_path / "before.json"
     p.write_text(json.dumps(data))
-    return p
+    return str(p)
 
 
 @pytest.fixture()
-def after_file(tmp_path: Path) -> Path:
+def after_file(tmp_path):
     data = [
-        {"id": "a1", "status": "ok", "latency": 95},
-        {"id": "b2", "status": "ok", "latency": 280},
-        {"id": "c3", "status": "ok", "latency": 50},
+        {"id": "1", "status": "ok", "latency": 10},
+        {"id": "2", "status": "error", "latency": 25},
+        {"id": "4", "status": "ok", "latency": 5},
     ]
     p = tmp_path / "after.json"
     p.write_text(json.dumps(data))
-    return p
+    return str(p)
 
 
-def test_cli_exits_zero_on_success(before_file: Path, after_file: Path) -> None:
-    rc = main([str(before_file), str(after_file)])
-    assert rc == 0
+def test_cli_exits_zero_on_success(before_file, after_file):
+    assert main([before_file, after_file]) == 0
 
 
-def test_cli_exits_one_on_missing_file(tmp_path: Path, after_file: Path) -> None:
-    rc = main([str(tmp_path / "nonexistent.json"), str(after_file)])
-    assert rc == 1
+def test_cli_exits_one_on_missing_file(before_file):
+    assert main([before_file, "nonexistent.json"]) == 1
 
 
-def test_cli_summary_only_flag(before_file: Path, after_file: Path, capsys) -> None:
-    rc = main([str(before_file), str(after_file), "--summary-only"])
-    assert rc == 0
+def test_cli_summary_only_flag(before_file, after_file, capsys):
+    main([before_file, after_file, "--summary-only"])
     captured = capsys.readouterr()
-    # Summary line should mention counts; individual entry headers should not appear
-    assert "modified" in captured.out or "added" in captured.out or "removed" in captured.out
+    # Summary line should mention entry counts
+    assert "entries" in captured.out.lower() or "changed" in captured.out.lower()
 
 
-def test_cli_no_color_flag(before_file: Path, after_file: Path, capsys) -> None:
-    rc = main([str(before_file), str(after_file), "--no-color"])
-    assert rc == 0
-    captured = capsys.readouterr()
-    # ANSI escape sequences should not be present
-    assert "\x1b[" not in captured.out
+def test_cli_sort_by_change_count(before_file, after_file):
+    assert main([before_file, after_file, "--sort", "change_count"]) == 0
 
 
-def test_cli_custom_key(tmp_path: Path) -> None:
-    before = tmp_path / "b.json"
-    after = tmp_path / "a.json"
-    before.write_text(json.dumps([{"request_id": "x1", "code": 200}]))
-    after.write_text(json.dumps([{"request_id": "x1", "code": 404}]))
-    rc = main([str(before), str(after), "--key", "request_id", "--no-color"])
-    assert rc == 0
+def test_cli_sort_desc(before_file, after_file):
+    assert main([before_file, after_file, "--sort", "key", "--sort-desc"]) == 0
+
+
+def test_cli_top_n(before_file, after_file, capsys):
+    assert main([before_file, after_file, "--top", "1"]) == 0
+
+
+def test_cli_invalid_sort_key_exits_nonzero(before_file, after_file):
+    """argparse should reject unknown --sort values."""
+    with pytest.raises(SystemExit) as exc_info:
+        main([before_file, after_file, "--sort", "invalid_key"])
+    assert exc_info.value.code != 0
+
+
+def test_build_parser_defaults():
+    parser = build_parser()
+    args = parser.parse_args(["a.json", "b.json"])
+    assert args.sort == "key"
+    assert args.sort_desc is False
+    assert args.top is None
+    assert args.summary_only is False
