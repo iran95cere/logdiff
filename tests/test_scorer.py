@@ -93,6 +93,17 @@ def test_top_n_raises_on_zero():
         top_n([], 0)
 
 
+def test_top_n_clamps_to_available():
+    """top_n should return all items when n exceeds the list length."""
+    diffs = [
+        make_diff(f"req-{i}", [make_change("field", "modified", i, i + 1)])
+        for i in range(3)
+    ]
+    scored = score_diffs(diffs)
+    top = top_n(scored, 100)
+    assert len(top) == 3
+
+
 def test_scored_diff_repr():
     diff = make_diff("req-x", [])
     sd = ScoredDiff(entry_diff=diff, score=4.2)
