@@ -1,0 +1,5 @@
+[
+  {"id": "req-001", "status": "ok", "latency_ms": 120},
+  {"id": "req-002", "status": "ok", "latency_ms": 95},
+  {"id": "req-003", "status": "error", "latency_ms": 540}
+]
