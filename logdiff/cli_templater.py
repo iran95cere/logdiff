@@ -38,6 +38,17 @@ def add_templater_args(subparsers: argparse._SubParsersAction) -> None:
     rm_p.add_argument("name", help="Template name")
 
 
+def _print_template(tmpl: Template) -> None:
+    """Print a template's settings in a human-readable format."""
+    print(f"Name        : {tmpl.name}")
+    print(f"Format      : {tmpl.format}")
+    print(f"Fields      : {tmpl.fields or '(all)'}")
+    print(f"Exclude     : {tmpl.exclude_fields or '(none)'}")
+    print(f"Summary only: {tmpl.summary_only}")
+    print(f"Min score   : {tmpl.min_score}")
+    print(f"Description : {tmpl.description}")
+
+
 def handle_templater(args: argparse.Namespace) -> int:
     """Dispatch template subcommands."""
     try:
@@ -56,20 +67,14 @@ def handle_templater(args: argparse.Namespace) -> int:
 
         elif args.template_cmd == "show":
             tmpl = load_template(args.name)
-            print(f"Name        : {tmpl.name}")
-            print(f"Format      : {tmpl.format}")
-            print(f"Fields      : {tmpl.fields or '(all)'}")
-            print(f"Exclude     : {tmpl.exclude_fields or '(none)'}")
-            print(f"Summary only: {tmpl.summary_only}")
-            print(f"Min score   : {tmpl.min_score}")
-            print(f"Description : {tmpl.description}")
+            _print_template(tmpl)
 
         elif args.template_cmd == "list":
             templates = list_templates()
             if not templates:
                 print("No templates saved.")
             for t in templates:
-                desc = f" — {t.description}" if t.description else ""
+                desc = f" \u2014 {t.description}" if t.description else ""
                 print(f"  {t.name} [{t.format}]{desc}")
 
         elif args.template_cmd == "remove":
