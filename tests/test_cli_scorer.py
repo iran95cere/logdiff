@@ -43,6 +43,19 @@ def test_handle_scorer_top_n_limits_results():
     assert len(result) == 3
 
 
+def test_handle_scorer_top_n_returns_highest_scored():
+    """Ensure top_n returns the highest-scoring diffs, not just the first N."""
+    diffs = [
+        make_diff("low", [make_change("msg", "modified", "a", "b")]),
+        make_diff("high", [make_change("status", "status_changed", "ok", "err")]),
+        make_diff("mid", [make_change("error", "added", None, "boom")]),
+    ]
+    args = build_args(top_n=1)
+    result = handle_scorer(diffs, args)
+    assert len(result) == 1
+    assert result[0].key == "high"
+
+
 def test_handle_scorer_min_score_filters_low():
     low = make_diff("low", [make_change("msg", "modified", "a", "b")])   # score ~1.0
     high = make_diff("high", [
