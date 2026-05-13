@@ -1,0 +1,6 @@
+[
+  {"key": "req-001", "changes": [{"field": "status", "before": "200", "after": "500", "change_type": "modified"}]},
+  {"key": "req-002", "changes": [{"field": "latency", "before": "120", "after": "340", "change_type": "modified"}]},
+  {"key": "req-003", "changes": []},
+  {"key": "req-004", "changes": [{"field": "status", "before": "200", "after": "404", "change_type": "modified"}]}
+]
