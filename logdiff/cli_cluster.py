@@ -36,6 +36,21 @@ def add_cluster_args(subparsers: argparse._SubParsersAction) -> None:  # type: i
     )
 
 
+def _print_cluster(cluster_id: int, info: dict, cluster_obj, summary_only: bool) -> None:  # type: ignore[type-arg]
+    """Print a single cluster's summary and optionally its member entry keys.
+
+    Args:
+        cluster_id: Numeric identifier for the cluster.
+        info: Summary dict containing 'size' and 'common_fields'.
+        cluster_obj: The Cluster object holding the individual diffs.
+        summary_only: When True, skip printing individual entry keys.
+    """
+    print(f"Cluster {cluster_id}: {info['size']} entries, fields={info['common_fields']}")
+    if not summary_only:
+        for diff in cluster_obj.diffs:
+            print(f"  - {diff.key}")
+
+
 def handle_cluster(args: argparse.Namespace, diffs: List[EntryDiff]) -> int:
     """Execute clustering and print results.
 
@@ -54,11 +69,10 @@ def handle_cluster(args: argparse.Namespace, diffs: List[EntryDiff]) -> int:
 
     summary = cluster_summary(clusters_sorted)
 
+    # Build a lookup so we avoid repeated linear scans inside the loop.
+    cluster_by_id = {c.cluster_id: c for c in clusters_sorted}
+
     for cluster_id, info in summary.items():
-        print(f"Cluster {cluster_id}: {info['size']} entries, fields={info['common_fields']}")
-        if not args.summary_only:
-            cluster_obj = next(c for c in clusters_sorted if c.cluster_id == cluster_id)
-            for diff in cluster_obj.diffs:
-                print(f"  - {diff.key}")
+        _print_cluster(cluster_id, info, cluster_by_id[cluster_id], args.summary_only)
 
     return 0
