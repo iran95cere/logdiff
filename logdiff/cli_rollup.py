@@ -31,6 +31,22 @@ def add_rollup_args(subparsers: argparse._SubParsersAction) -> None:  # type: ig
     )
 
 
+def _format_rollup_row(field_name: str, modified: int, added: int, removed: int, total: int) -> str:
+    """Format a single field row for the rollup table.
+
+    Args:
+        field_name: The name of the field.
+        modified: Number of modified occurrences.
+        added: Number of added occurrences.
+        removed: Number of removed occurrences.
+        total: Total number of changes.
+
+    Returns:
+        A formatted string row suitable for tabular display.
+    """
+    return f"{field_name:<30} {modified:>10} {added:>8} {removed:>9} {total:>7}"
+
+
 def handle_rollup(args: argparse.Namespace, diffs: List[EntryDiff]) -> None:
     """Execute the rollup command and print results to stdout.
 
@@ -51,11 +67,9 @@ def handle_rollup(args: argparse.Namespace, diffs: List[EntryDiff]) -> None:
         print("No fields meet the minimum change threshold.")
         return
 
-    header = f"{'Field':<30} {'Modified':>10} {'Added':>8} {'Removed':>9} {'Total':>7}"
+    header = _format_rollup_row("Field", "Modified", "Added", "Removed", "Total")
     print(header)
     print("-" * len(header))
 
     for fr in candidates:
-        print(
-            f"{fr.field_name:<30} {fr.modified:>10} {fr.added:>8} {fr.removed:>9} {fr.total:>7}"
-        )
+        print(_format_rollup_row(fr.field_name, fr.modified, fr.added, fr.removed, fr.total))
