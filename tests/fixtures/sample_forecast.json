@@ -1,0 +1,6 @@
+[
+  {"key": "deploy-001", "changes": [{"field": "version", "before": "1.0", "after": "1.1", "change_type": "modified"}, {"field": "cpu_limit", "before": "500m", "after": "750m", "change_type": "modified"}]},
+  {"key": "deploy-002", "changes": [{"field": "replicas", "before": "2", "after": "3", "change_type": "modified"}]},
+  {"key": "deploy-003", "changes": [{"field": "version", "before": "2.0", "after": "2.1", "change_type": "modified"}, {"field": "memory_limit", "before": null, "after": "256Mi", "change_type": "added"}]},
+  {"key": "deploy-004", "changes": []}
+]
