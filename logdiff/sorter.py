@@ -54,7 +54,13 @@ def sort_diffs_by_most_changed(
 
     Returns:
         Sorted (and optionally truncated) list of EntryDiff instances.
+
+    Raises:
+        ValueError: If *top_n* is not a positive integer.
     """
+    if top_n is not None and top_n < 1:
+        raise ValueError(f"top_n must be a positive integer, got {top_n!r}")
+
     sorted_diffs = sort_diffs(diffs, by="change_count", reverse=True)
     if top_n is not None:
         return sorted_diffs[:top_n]
